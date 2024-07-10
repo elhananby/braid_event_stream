@@ -71,7 +71,7 @@ impl BraidEventStream {
             while let Some(event_result) = stream.next().await {
                 match event_result {
                     Ok(event) => {
-                        if event.event == "message" {
+                        if event.event == "braid" {
                             let _received_time = Instant::now();
                             match Self::parse_event(&event.data) {
                                 Ok(braid_event) => {
