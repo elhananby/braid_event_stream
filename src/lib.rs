@@ -7,11 +7,13 @@ use thiserror::Error;
 use tokio::sync::mpsc::unbounded_channel;
 use tokio::sync::mpsc::UnboundedReceiver;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize,Deserialize)]
 pub struct KalmanEstimates {
     pub obj_id: u32,
+
+    #[serde(default)]
+    pub timestamp: f64,
     pub frame: u32,
-    pub timestamp: f32,
     pub x: f64,
     pub y: f64,
     pub z: f64,
@@ -101,13 +103,21 @@ impl BraidEventStream {
     fn parse_event(data: &str) -> Result<BraidEvent, BraidEventError> {
         let json_data: serde_json::Value = serde_json::from_str(data)?;
 
+        // Extract timestamp from the root of the JSON
+        let timestamp = json_data
+            .get("trigger_timestamp")
+            .and_then(|t| t.as_f64())
+            .ok_or_else(|| BraidEventError::MissingField("trigger_timestamp".to_string()))?;
+
         if let Some(msg) = json_data.get("msg") {
             if let Some(obj) = msg.as_object() {
                 if let Some((event_type, event_data)) = obj.iter().next() {
                     match event_type.as_str() {
                         "Birth" | "Update" => {
-                            let estimates: KalmanEstimates =
+                            let mut estimates: KalmanEstimates =
                                 serde_json::from_value(event_data.clone())?;
+                            estimates.timestamp = timestamp;
+
                             Ok(if event_type == "Birth" {
                                 BraidEvent::Birth(estimates)
                             } else {

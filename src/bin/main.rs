@@ -1,9 +1,9 @@
 use braid_event_stream::BraidEventStream;
-use tokio;
 use std::error::Error;
+use tokio;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> { 
+async fn main() -> Result<(), Box<dyn Error>> {
     let events_url = String::from("http://10.40.80.6:8397/events");
     let braid_stream = BraidEventStream::new(events_url);
     let mut event_receiver = braid_stream.stream_events().await?;
@@ -20,5 +20,4 @@ async fn main() -> Result<(), Box<dyn Error>> {
     }
 
     Ok(())
-
 }
