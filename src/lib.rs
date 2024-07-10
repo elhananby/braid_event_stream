@@ -7,7 +7,7 @@ use thiserror::Error;
 use tokio::sync::mpsc::unbounded_channel;
 use tokio::sync::mpsc::UnboundedReceiver;
 
-#[derive(Debug, Clone, Serialize,Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize,Deserialize)]
 pub struct KalmanEstimates {
     pub obj_id: u32,
 
@@ -22,6 +22,21 @@ pub struct KalmanEstimates {
     pub zvel: f64,
 }
 
+impl Default for KalmanEstimates {
+    fn default() -> Self {
+        KalmanEstimates {
+            obj_id: 0,
+            timestamp: 0.0,
+            frame: 0,
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+            xvel: 0.0,
+            yvel: 0.0,
+            zvel: 0.0,
+        }
+    }
+}
 #[derive(Debug, Clone)]
 pub enum BraidEvent {
     Birth(KalmanEstimates),
@@ -146,6 +161,12 @@ impl BraidEventStream {
     }
 }
 
+
+impl Drop for BraidEventStream {
+    fn drop(&mut self) {
+        log::info!("Dropping BraidEventStream");
+    }
+}
 #[cfg(test)]
 mod tests {
     use super::*;
